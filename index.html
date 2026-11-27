@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Security policy (ໃຊ້ໄດ້ທັງ GitHub Pages ແລະ Netlify) -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://aqqcpviycadgprmuqnyz.supabase.co; connect-src 'self' https://aqqcpviycadgprmuqnyz.supabase.co wss://aqqcpviycadgprmuqnyz.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <title>ລະບົບຈັດການຫ້ອງທົດລອງ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="logged-out">
+
+  <!-- ===== ໜ້າເຂົ້າສູ່ລະບົບ ===== -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-bg"></div>
+    <form class="login-card" id="loginForm" autocomplete="on">
+      <div class="login-logo">🔬</div>
+      <h1>Lab Manager</h1>
+      <p class="sub">ລະບົບຈັດການຫ້ອງທົດລອງ</p>
+
+      <div class="field">
+        <label>ຊື່ຜູ້ໃຊ້</label>
+        <div class="input-ic"><span>👤</span><input name="username" id="loginUser" autocomplete="username" required placeholder="ປ້ອນຊື່ຜູ້ໃຊ້" /></div>
+      </div>
+      <div class="field">
+        <label>ລະຫັດຜ່ານ</label>
+        <div class="input-ic">
+          <span>🔒</span>
+          <input name="password" id="loginPass" type="password" autocomplete="current-password" required placeholder="ປ້ອນລະຫັດຜ່ານ" />
+          <button type="button" class="eye" id="togglePass" title="ສະແດງລະຫັດຜ່ານ">👁</button>
+        </div>
+      </div>
+      <label class="check"><input type="checkbox" name="remember" id="loginRemember" /> ຈື່ຂ້ອຍໄວ້ໃນເຄື່ອງນີ້</label>
+
+      <div class="login-error" id="loginError"></div>
+      <button type="submit" class="btn primary block" id="loginBtn">ເຂົ້າສູ່ລະບົບ</button>
+      <p class="login-note">ຍັງບໍ່ມີບັນຊີ? ກະລຸນາຕິດຕໍ່ຜູ້ດູແລລະບົບ (Admin) ເພື່ອສ້າງບັນຊີໃຫ້</p>
+    </form>
+  </div>
+
+  <!-- ===== ແອັບຫຼັກ ===== -->
+  <div class="layout" id="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">🔬</div>
+        <div>
+          <div class="brand-name">Lab Manager</div>
+          <div class="brand-sub">ລະບົບຈັດການຫ້ອງທົດລອງ</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <button class="nav-item active" data-page="dashboard"><span class="ic">📊</span>ພາບລວມ</button>
+        <button class="nav-item" data-page="equipment"><span class="ic">🧪</span>ອຸປະກອນ</button>
+        <button class="nav-item admin-only" data-page="categories"><span class="ic">🏷️</span>ໝວດໝູ່</button>
+        <button class="nav-item" data-page="tasks"><span class="ic">📋</span>ໜ້າວຽກ</button>
+        <button class="nav-item admin-only" data-page="members"><span class="ic">👥</span>ສະມາຊິກ</button>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="admin-only side-tools">
+          <button class="side-btn" id="exportBtn">⬇ ສຳຮອງຂໍ້ມູນ (JSON)</button>
+        </div>
+        <div class="sync" id="syncState">● ເຊື່ອມຕໍ່ແລ້ວ</div>
+        <div class="user-box">
+          <div class="mini-av lg" id="meAvatar"></div>
+          <div class="me-info">
+            <div class="me-name" id="meName"></div>
+            <div class="me-role" id="meRole"></div>
+          </div>
+        </div>
+        <div class="user-actions">
+          <button class="side-btn" id="changePwBtn">🔑 ປ່ຽນລະຫັດ</button>
+          <button class="side-btn logout" id="logoutBtn">⎋ ອອກລະບົບ</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <!-- ===== ພາບລວມ ===== -->
+      <section id="dashboard" class="page active">
+        <div class="page-head">
+          <div>
+            <h1 id="helloText">ພາບລວມ</h1>
+            <p class="sub" id="todayText"></p>
+          </div>
+        </div>
+        <div class="notice" id="defaultPwNotice" hidden>
+          ⚠️ ທ່ານຍັງໃຊ້ລະຫັດຜ່ານເລີ່ມຕົ້ນຢູ່ — ກະລຸນາ <a href="#" id="noticeChangePw">ປ່ຽນລະຫັດຜ່ານ</a> ເພື່ອຄວາມປອດໄພ
+        </div>
+        <div class="stats" id="stats"></div>
+        <div class="card admin-only">
+          <div class="card-head row-head"><h2>📈 ຄວາມຄືບໜ້າຂອງທີມ</h2><button class="btn small ghost" onclick="goPage('tasks')">ເບິ່ງໜ້າວຽກທັງໝົດ →</button></div>
+          <div class="team" id="teamProgress"></div>
+        </div>
+        <div class="card member-only">
+          <div class="card-head row-head"><h2>📋 ວຽກຂອງຂ້ອຍ</h2><button class="btn small ghost" onclick="goPage('tasks')">ອັບເດດຄວາມຄືບໜ້າ →</button></div>
+          <div class="my-tasks" id="myTasks"></div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head row-head"><h2>🧪 ອຸປະກອນທີ່ຖືກຢືມຢູ່</h2><button class="btn small ghost" onclick="showBorrowed()">ເບິ່ງລາຍລະອຽດ →</button></div>
+            <ul class="list" id="borrowedList"></ul>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>⏰ ວຽກໃກ້ຮອດກຳນົດ / ເກີນກຳນົດ</h2></div>
+            <ul class="list" id="dueList"></ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2 id="historyTitle">🕘 ປະຫວັດລ່າສຸດ</h2></div>
+          <ul class="list timeline" id="historyList"></ul>
+        </div>
+      </section>
+
+      <!-- ===== ອຸປະກອນ ===== -->
+      <section id="equipment" class="page">
+        <div class="page-head">
+          <div>
+            <h1>ອຸປະກອນໃນຫ້ອງທົດລອງ</h1>
+            <p class="sub">ຈັດການ, ຢືມ ແລະ ສົ່ງຄືນອຸປະກອນ</p>
+          </div>
+          <button class="btn primary admin-only" id="addEquipBtn">＋ ເພີ່ມອຸປະກອນ</button>
+        </div>
+        <div class="seg" id="equipTabs">
+          <button class="seg-b active" data-tab="all">📦 ທັງໝົດ <span class="n" id="tabAllN">0</span></button>
+          <button class="seg-b" data-tab="borrowed">📤 ກຳລັງຖືກຢືມ <span class="n" id="tabBorN">0</span></button>
+        </div>
+        <div class="toolbar card">
+          <div class="search">
+            <span>🔍</span>
+            <input type="search" id="equipSearch" placeholder="ຄົ້ນຫາ ຊື່ / ລະຫັດ / ບ່ອນເກັບ..." />
+          </div>
+          <select id="equipFilterStatus"></select>
+          <select id="equipFilterCat"><option value="">ທຸກໝວດ</option></select>
+          <div class="view-toggle">
+            <button class="vt active" data-view="cards" title="ມຸມມອງບັດ">▦</button>
+            <button class="vt" data-view="table" title="ມຸມມອງຕາຕະລາງ">☰</button>
+          </div>
+        </div>
+        <div class="equip-grid" id="equipGrid"></div>
+        <div class="card table-card" id="equipTableCard">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th></th><th>ລະຫັດ</th><th>ຊື່ອຸປະກອນ</th><th>ໝວດໝູ່</th><th>ຈຳນວນ</th>
+                  <th>ບ່ອນເກັບ</th><th>ສະຖານະ</th><th>ຜູ້ຢືມ</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="equipTable"></tbody>
+            </table>
+          </div>
+          <p class="empty" id="equipEmpty"></p>
+        </div>
+        <div id="equipBorrowed"></div>
+      </section>
+
+      <!-- ===== ໝວດໝູ່ ===== -->
+      <section id="categories" class="page">
+        <div class="page-head">
+          <div>
+            <h1>ໝວດໝູ່ອຸປະກອນ</h1>
+            <p class="sub">ຈັດກຸ່ມອຸປະກອນ ເພື່ອໃຫ້ຄົ້ນຫາງ່າຍຂຶ້ນ</p>
+          </div>
+          <button class="btn primary admin-only" id="addCatBtn">＋ ເພີ່ມໝວດໝູ່</button>
+        </div>
+        <div class="cat-grid" id="catGrid"></div>
+      </section>
+
+      <!-- ===== ໜ້າວຽກ ===== -->
+      <section id="tasks" class="page">
+        <div class="page-head">
+          <div>
+            <h1>ໜ້າວຽກ</h1>
+            <p class="sub" id="tasksSub"></p>
+          </div>
+          <button class="btn primary admin-only" id="addTaskBtn">＋ ເພີ່ມວຽກ</button>
+        </div>
+        <div class="person-bar admin-only" id="personBar"></div>
+        <div class="board" id="board"></div>
+      </section>
+
+      <!-- ===== ສະມາຊິກ ===== -->
+      <section id="members" class="page">
+        <div class="page-head">
+          <div>
+            <h1>ສະມາຊິກໃນຫ້ອງທົດລອງ</h1>
+            <p class="sub" id="membersSub">ລາຍຊື່ຄົນໃນທີມ ແລະ ວຽກຂອງແຕ່ລະຄົນ</p>
+          </div>
+          <button class="btn primary admin-only" id="addMemberBtn">＋ ສ້າງບັນຊີສະມາຊິກ</button>
+        </div>
+        <div class="member-grid" id="memberGrid"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ===== Modal ===== -->
+  <div class="modal-bg" id="modalBg">
+    <form class="modal" id="modalForm">
+      <div class="modal-head">
+        <h2 id="modalTitle"></h2>
+        <button type="button" class="x" id="modalX">✕</button>
+      </div>
+      <div id="modalBody"></div>
+      <div class="modal-error" id="modalError"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="modalCancel">ຍົກເລີກ</button>
+        <button type="submit" class="btn primary">ບັນທຶກ</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="lightbox" id="lightbox"><img id="lightboxImg" alt="" /><div class="lb-cap" id="lightboxCap"></div></div>
+  <div class="success-pop" id="successPop" onclick="this.classList.remove('show')"></div>
+  <div class="toast" id="toast"></div>
+  <div class="loading-overlay"><div class="spinner"></div></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js"
+          integrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ"
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# Netlify security headers (Netlify ອ່ານໄຟລ໌ນີ້ອັດຕະໂນມັດ — ບໍ່ຕ້ອງຕັ້ງຄ່າຫຍັງເພີ່ມ)
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://aqqcpviycadgprmuqnyz.supabase.co; connect-src 'self' https://aqqcpviycadgprmuqnyz.supabase.co wss://aqqcpviycadgprmuqnyz.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+# ບໍ່ໃຫ້ cache ໂຄ້ດ ເພື່ອໃຫ້ທຸກຄົນໄດ້ເວີຊັນໃໝ່ທັນທີຫຼັງ deploy
+/*.js
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
